@@ -141,11 +141,19 @@ void MandelbrotViewer::updateViewState(const InputSummary& inputs, sf::Time delt
 void MandelbrotViewer::handleZoom(double scrollDistance, sf::Vector2i mousePosition) {
     double worldViewFactor = std::pow(ZOOM_EXPONENT_BASE, scrollDistance);
 
-    // TODO: expand our world view bounds (mMinPointWorld, mMaxPointWorld)
+    // expand our world view bounds (mMinPointWorld, mMaxPointWorld)
     // by worldViewFactor around the current world point being pointed to by the user's cursor.
     // In particular, the new world-coordinates rectangle will be of size
     // (worldViewFactor * (orig world width), worldViewFactor * (orig world height)),
     // and the user's cursor will point to exactly the same thing before and after the zoom.
+    sf::vector2<double> mouseWorldPos = windowPosToWorld(mousePosition());
+    sf::vector2<double> mousePosRatio = mousePoisition / mWorldSize;
+
+    std::pair<sf::Vector2<double>, sf::Vector2<double>> origWorld = getInitialWorldBoundsForWindowSize(mWindowSize.x, mWindowSize.y);
+    sf::vector2<double> size = sf::Vector2<double>(worldViewFactor * (origWorld.second - origWorld.first));
+    
+    mMinPointWorld = mouseWorldPos - mousePosRatio * size;
+    mMaxPointWorld = mMinPointWorld + size;
 }
 
 void MandelbrotViewer::handleWindowResize(sf::Vector2u newSize)  // newSize is in window coords.
@@ -153,6 +161,7 @@ void MandelbrotViewer::handleWindowResize(sf::Vector2u newSize)  // newSize is i
     // IMPORTANT: after resizing window, need to fix view, or else original world
     // rectangle gets scaled to new window size instead. This line ensures that when the window
     // expands, "more of the world" is correspondingly viewable.
+    Vector2<double> oldSize = static_cast<Vector2<double>>(mWindowSize);
     mWindow.setView(sf::View(
         sf::FloatRect({0, 0}, {static_cast<float>(newSize.x), static_cast<float>(newSize.y)})));
 
@@ -163,6 +172,7 @@ void MandelbrotViewer::handleWindowResize(sf::Vector2u newSize)  // newSize is i
     //       was scaled in the respective dimension, such that the original view is only
     //       cropped/extended, not zoomed.
     // ... your code here...
+    vector
 
     // update CPU-side image buffer size to have enough memory for all the pixels:
     mViewBuffer.resize(newSize);
@@ -228,9 +238,9 @@ double MandelbrotViewer::mandelbrotSmooth(double cX, double cY, int maxIters) co
 
 // windowPosToWorld takes a point in window coordinates and converts it to world coordinates
 sf::Vector2<double> MandelbrotViewer::windowPosToWorld(const sf::Vector2<double>& pWindow) {
-    // TODO: given a point in window coordinates (by default SFML gives these as sf::Vector2i,
-    //       the caller will have to cast to sf::Vector2<double>), convert them into world
-    //       coordinates in the context of the current world view.
+    // given a point in window coordinates (by default SFML gives these as sf::Vector2i,
+    // the caller will have to cast to sf::Vector2<double>), convert them into world
+    // coordinates in the context of the current world view.
 
     return sf::Vector2<double>((pWindow / static_cast<sf::Vector2<double>>(mWindowSize)) * (mMaxPointWorld - mMinPointWorld) + mMinPointWorld);
 }
