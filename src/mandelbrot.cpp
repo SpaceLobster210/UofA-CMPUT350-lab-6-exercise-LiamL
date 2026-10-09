@@ -198,8 +198,21 @@ void MandelbrotViewer::updateUIText(sf::Vector2i mouseWindowCoords) {
 }
 
 double MandelbrotViewer::mandelbrot(double cX, double cY, int maxIters) const {
-    // TODO: return the number of iterations it takes for z to escape a radius of 2,
-    //       if it happens within maxIters iterations, otherwise return infinity.
+    // return the number of iterations it takes for z to escape a radius of 2,
+    // if it happens within maxIters iterations, otherwise return infinity.
+    double curX = 0;
+    double curY = 0;
+    double tempX;
+
+    for (int iter = 0; iter < maxIters; ++iter) {
+        tempX = curX * curX - curY * curY + cX;
+        curY = 2 * curX * curY + cY;
+        curX = tempX;
+
+        if (std::sqrt(curX * curX + curY * curY) > 2.0f) {
+            return static_cast<double>(iter);
+        }
+    }
 
     return std::numeric_limits<double>::infinity();  // get rid of this and add your code here...
 }
@@ -219,7 +232,7 @@ sf::Vector2<double> MandelbrotViewer::windowPosToWorld(const sf::Vector2<double>
     //       the caller will have to cast to sf::Vector2<double>), convert them into world
     //       coordinates in the context of the current world view.
 
-    return {};
+    return sf::Vector2<double>((pWindow / static_cast<sf::Vector2<double>>(mWindowSize)) * (mMaxPointWorld - mMinPointWorld) + mMinPointWorld);
 }
 
 // drawIntoBuffer renders the current world view (bounded by mMinPointWorld and mMaxPointWorld)
@@ -237,8 +250,9 @@ void MandelbrotViewer::drawIntoViewBuffer(int maxIters) {
 // copyViewBufferToGPU takes the drawn CPU-side buffer mViewBuffer and copies it to the
 // GPU-side.
 void MandelbrotViewer::copyViewBufferToGPU() {
-    // TODO: load mViewBuffer from the CPU into mViewBufferGPU on the GPU.
+    // load mViewBuffer from the CPU into mViewBufferGPU on the GPU.
     // Hint: this is a one-liner.
+    mViewBufferGPU.loadFromMemory(mViewBuffer);
 }
 
 // draw clears the window, draws the view, as well as the text with its shadow underneath
