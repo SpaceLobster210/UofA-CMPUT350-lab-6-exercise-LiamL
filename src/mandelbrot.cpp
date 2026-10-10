@@ -251,7 +251,22 @@ double MandelbrotViewer::mandelbrotSmooth(double cX, double cY, int maxIters) co
     //       If you use an escape radius of exactly 2, you will see some artifacts. Use a
     //       higher radius (this is still correct, since divergence -> infty), but with more
     //       computational cost (since you need to simulate more steps).
-    return std::numeric_limits<double>::infinity();  // get rid of this and add your code here...
+    double curX = 0;
+    double curY = 0;
+    double tempX;
+
+    for (int iter = 0; iter < maxIters; ++iter) {
+        tempX = curX * curX - curY * curY + cX;
+        curY = 2 * curX * curY + cY;
+        curX = tempX;
+
+        double z = curX * curX + curY * curY;
+        if (z > 4.0f) {
+            return static_cast<double>(iter + 1 - (std::log(std::log(abs(z))) / LOG_2));
+        }
+    }
+
+    return 999999999999.0;
 }
 
 // windowPosToWorld takes a point in window coordinates and converts it to world coordinates
@@ -276,7 +291,7 @@ void MandelbrotViewer::drawIntoViewBuffer(int maxIters) {
     for (double y = 0; y < mWindowSize.y; ++y) {
         for (double x = 0; x < mWindowSize.x; ++x) {
             sf::Vector2<double> worldPos = windowPosToWorld(sf::Vector2<double>(x, y));
-            double mandel = mandelbrot(worldPos.x, worldPos.y, maxIters);
+            double mandel = mandelbrotSmooth(worldPos.x, worldPos.y, maxIters);
             if (mandel == 999999999999) {
                 mViewBuffer.setPixel(sf::Vector2u(x, y), sf::Color::Black);
             }
